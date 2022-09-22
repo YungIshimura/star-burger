@@ -3,6 +3,7 @@ from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+import re
 
 from .models import Order, Product, Сustomer
 
@@ -63,12 +64,9 @@ def product_list_api(request):
 def register_order(request):
     order = request.data
 
-    if 'products' not in order.keys():
-        content = {'products: Обязательное поле'}
-        return Response(content, status=status.HTTP_400_BAD_REQUEST)
-
-    elif order['products'] is None:
-        content = {'products: Это поле не может быть пустым'}
+    if 'firstname' and 'lastname' and 'phonenumber' and 'address' not in order.keys():
+        content = {
+            'products, firstname, lastname, phonenumber, address: Обязательные поля, они не могут быть пустыми'}
 
         return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
@@ -77,10 +75,26 @@ def register_order(request):
 
         return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
+    elif not re.match('^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$', order['phonenumber']):
+        content = {"phonenumber: Введен некорректный номер телефона"}
+
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
     elif type(order['products']) is not list:
         content = {
             f'products: Ожидался list со значениями, но был получен {type(order["products"])}'
         }
+
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+    elif Product.objects.last().id < order['products'][0]['product']:
+        content = {
+            f'products: Недопустимый первичный ключ {order["products"][0]["product"]}'}
+
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+    elif order['firstname'] is not str:
+        content = {'firstname: это не строка'}
 
         return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
