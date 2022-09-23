@@ -169,6 +169,9 @@ class Order(models.Model):
     quantity=models.IntegerField(
         'Количество',
         default=1)
+    
+    def __str__(self):
+        return f'{self.customer} - {self.product}: {self.quantity}'
 
     class Meta:
         verbose_name = 'Заказ'
