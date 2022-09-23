@@ -124,14 +124,14 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
-class Сustomer(models.Model):
-    name = models.CharField(
+class Customer(models.Model):
+    firstname = models.CharField(
         'Имя',
         max_length=20,
         blank=True
     )
 
-    surname = models.CharField(
+    lastname = models.CharField(
         'Фамилия',
         max_length=50,
         blank=True
@@ -142,9 +142,9 @@ class Сustomer(models.Model):
         blank=True
     )
 
-    phone_number = PhoneNumberField(
+    phonenumber = PhoneNumberField(
         'Номер телефона',
-        blank=True
+        blank=True,
     )
 
     class Meta:
@@ -157,7 +157,7 @@ class Сustomer(models.Model):
 
 class Order(models.Model):
     customer = models.ForeignKey(
-        Сustomer,
+        Customer,
         on_delete=models.CASCADE,
         related_name='order',
         verbose_name='Заказчик')

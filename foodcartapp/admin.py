@@ -7,7 +7,7 @@ from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
-from .models import Сustomer
+from .models import Customer
 from .models import Order
 
 
@@ -113,8 +113,8 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Сustomer)
-class CustomerAdmin(admin.ModelAdmin):
+@admin.register(Customer)
+class Customer(admin.ModelAdmin):
     inlines = [
         OrderInline
     ]
