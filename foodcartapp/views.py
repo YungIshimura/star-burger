@@ -15,10 +15,10 @@ class OrderSerializer(ModelSerializer):
 
 
 class CustomerSerializer(ModelSerializer):
-    products = OrderSerializer(many=True, allow_empty=False)
+    products = OrderSerializer(many=True, allow_empty=False, write_only=True)
     class Meta:
         model = Customer
-        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+        fields = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'products']
 
 
 def banners_list_api(request):
@@ -96,5 +96,4 @@ def register_order(request):
             quantity=products['quantity']
         )
 
-
-    return Response()
+    return Response(serializer.data)
