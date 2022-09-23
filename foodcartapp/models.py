@@ -171,7 +171,7 @@ class Order(models.Model):
         default=1)
     
     def __str__(self):
-        return f'{self.customer} - {self.product}: {self.quantity}'
+        return f'{self.id} {self.customer} - {self.product}: {self.quantity}'
 
     class Meta:
         verbose_name = 'Заказ'
