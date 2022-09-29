@@ -4,9 +4,9 @@ from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
 
+from django.db.models import Prefetch
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
 from foodcartapp.models import Product, Restaurant, Order
 
 
@@ -69,8 +69,10 @@ def view_products(request):
 
     products_with_restaurant_availability = []
     for product in products:
-        availability = {item.restaurant_id: item.availability for item in product.menu_items.all()}
-        ordered_availability = [availability.get(restaurant.id, False) for restaurant in restaurants]
+        availability = {
+            item.restaurant_id: item.availability for item in product.menu_items.all()}
+        ordered_availability = [availability.get(
+            restaurant.id, False) for restaurant in restaurants]
 
         products_with_restaurant_availability.append(
             (product, ordered_availability)
@@ -91,15 +93,26 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.all().prefetch_related('customer')
+    orders = Order.objects.full_price().prefetch_related('customer') 
+    processed_orders = []
 
-    order_items = [{
-        'id':order.id,
-        'customer': order.customer,
-        'phonenumber': order.customer.phonenumber,
-        'address': order.customer.address
-    } for order in orders]
+    for order in orders:
+        
+        customer_orders = orders.filter(customer=order.customer.id)
+        cost = sum([order.full_price for order in customer_orders])
+
+        for customer_order in customer_orders:
+            order_items = {
+                'id': customer_order.id,
+                'price': cost,
+                'customer': customer_order.customer,
+                'phonenumber': customer_order.customer.phonenumber,
+                'address': customer_order.customer.address
+            }
+
+        if order.id == order_items['id']:
+            processed_orders.append(order_items)
 
     return render(request, template_name='order_items.html', context={
-        'order_items': order_items
+        'order_items': processed_orders
     })
