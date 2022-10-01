@@ -16,9 +16,11 @@ class OrderSerializer(ModelSerializer):
 
 class CustomerSerializer(ModelSerializer):
     products = OrderSerializer(many=True, allow_empty=False, write_only=True)
+
     class Meta:
         model = Customer
-        fields = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'products']
+        fields = ['id', 'firstname', 'lastname',
+                  'phonenumber', 'address', 'products']
 
 
 def banners_list_api(request):
@@ -89,11 +91,13 @@ def register_order(request):
 
     for products in order:
         products = dict(products)
-
-        Order.objects.create(
+        order = Order.objects.create(
             customer=customer,
             product=products['product'],
             quantity=products['quantity']
         )
+        if not order.final_price:
+            order.final_price = order.product.price
+            order.save()
 
     return Response(serializer.data)

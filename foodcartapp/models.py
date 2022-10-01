@@ -1,3 +1,5 @@
+from email.policy import default
+from unicodedata import decimal
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
@@ -81,10 +83,9 @@ class Product(models.Model):
     )
     description = models.TextField(
         'описание',
-        max_length=200,
+        max_length=300,
         blank=True,
     )
-
     objects = ProductQuerySet.as_manager()
 
     class Meta:
@@ -154,7 +155,8 @@ class Customer(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def full_price(self):
-        full_price = self.annotate(full_price=Sum(F('quantity') * F('product__price')))
+        full_price = self.annotate(full_price=Sum(
+            F('quantity') * F('product__price')))
 
         return full_price
 
@@ -173,7 +175,14 @@ class Order(models.Model):
         related_name='product',
         verbose_name='продукт',
     )
-
+    final_price = models.DecimalField(
+        'Окончательная стоимость',
+        null=True,
+        blank=True,
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
     quantity = models.IntegerField(
         'Количество',
         default=1)
