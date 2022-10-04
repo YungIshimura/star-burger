@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
@@ -126,6 +127,11 @@ class RestaurantMenuItem(models.Model):
 
 
 class Customer(models.Model):
+    PAYMENT_METHOD = (
+        ('not specified', 'Не указан'),
+        ('cash', 'Наличными'),
+        ('card', 'Картой')
+    )
     firstname = models.CharField(
         'Имя',
         max_length=20,
@@ -164,6 +170,13 @@ class Customer(models.Model):
         'Время и дата доставки',
         blank=True,
         null=True,
+        db_index=True
+    )
+    payment = models.CharField(
+        'Способ оплаты',
+        max_length=15,
+        choices=PAYMENT_METHOD,
+        default='not specified',
         db_index=True
     )
 

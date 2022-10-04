@@ -104,6 +104,7 @@ def view_orders(request):
             order_items = {
                 'id': customer_order.id,
                 'status': order.get_status_display(),
+                'payment': order.customer.get_payment_display(),
                 'price': cost,
                 'customer': customer_order.customer,
                 'phonenumber': customer_order.customer.phonenumber,
