@@ -162,6 +162,12 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    STATUS = (
+        ('raw', 'Необработанный'),
+        ('prepare', 'Готовиться'),
+        ('delivered', 'Передан курьеру'),
+        ('completed', 'Выполнен')
+    )
     customer = models.ForeignKey(
         Customer,
         on_delete=models.CASCADE,
@@ -186,6 +192,12 @@ class Order(models.Model):
     quantity = models.IntegerField(
         'Количество',
         default=1)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS,
+        default='raw'
+    )
 
     objects = OrderQuerySet.as_manager()
 

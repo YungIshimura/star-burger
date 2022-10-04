@@ -103,6 +103,7 @@ def view_orders(request):
         for customer_order in customer_orders:
             order_items = {
                 'id': customer_order.id,
+                'status': order.get_status_display(),
                 'price': cost,
                 'customer': customer_order.customer,
                 'phonenumber': customer_order.customer.phonenumber,
