@@ -145,6 +145,10 @@ class Customer(models.Model):
         'Номер телефона',
     )
 
+    comment = models.TextField(
+        'Комментарий',
+        blank=True
+    )
     class Meta:
         verbose_name = 'Заказчик'
         verbose_name_plural = 'Заказчики'
@@ -194,6 +198,7 @@ class Order(models.Model):
         default=1)
 
     status = models.CharField(
+        'Статус заказа',
         max_length=20,
         choices=STATUS,
         default='raw',
