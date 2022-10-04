@@ -1,9 +1,8 @@
-from email.policy import default
-from unicodedata import decimal
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import F, Sum
+from django.utils import timezone
 
 
 class Restaurant(models.Model):
@@ -147,8 +146,27 @@ class Customer(models.Model):
 
     comment = models.TextField(
         'Комментарий',
-        blank=True
+        blank=True,
+        null=True
     )
+    registered_at = models.DateTimeField(
+        'Время и дата заказа',
+        default=timezone.now,
+        db_index=True
+    )
+    called_at = models.DateTimeField(
+        'Время и дата звонка',
+        blank=True,
+        null=True,
+        db_index=True
+    )
+    delivered_at = models.DateTimeField(
+        'Время и дата доставки',
+        blank=True,
+        null=True,
+        db_index=True
+    )
+
     class Meta:
         verbose_name = 'Заказчик'
         verbose_name_plural = 'Заказчики'
@@ -202,9 +220,8 @@ class Order(models.Model):
         max_length=20,
         choices=STATUS,
         default='raw',
-        db_index = True
+        db_index=True
     )
-
     objects = OrderQuerySet.as_manager()
 
     def __str__(self):
