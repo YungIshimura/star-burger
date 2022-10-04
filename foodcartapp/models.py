@@ -196,7 +196,8 @@ class Order(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS,
-        default='raw'
+        default='raw',
+        db_index = True
     )
 
     objects = OrderQuerySet.as_manager()
