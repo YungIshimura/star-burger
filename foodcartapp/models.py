@@ -1,4 +1,3 @@
-from email.policy import default
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
@@ -178,6 +177,14 @@ class Customer(models.Model):
         choices=PAYMENT_METHOD,
         default='not specified',
         db_index=True
+    )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='restaurant',
+        verbose_name='Кто приготовит'
     )
 
     class Meta:

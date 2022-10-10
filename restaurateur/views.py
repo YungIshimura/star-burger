@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-from foodcartapp.models import Product, Restaurant, Order
+from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 
 
 class Login(forms.Form):
@@ -92,11 +92,11 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.full_price().prefetch_related('customer') 
+    orders = Order.objects.full_price().prefetch_related('customer')
     processed_orders = []
 
     for order in orders:
-        
+        restaurants = RestaurantMenuItem.objects.filter(product=order.product)
         customer_orders = orders.filter(customer=order.customer.id)
         cost = sum([order.full_price for order in customer_orders])
 
@@ -108,8 +108,21 @@ def view_orders(request):
                 'price': cost,
                 'customer': customer_order.customer,
                 'phonenumber': customer_order.customer.phonenumber,
-                'address': customer_order.customer.address
+                'address': customer_order.customer.address,
+                'comment': customer_order.customer.comment,
+                'restaurants': [restaurant.restaurant for restaurant in restaurants]
             }
+            if customer_order.customer.restaurant:
+                order_items.update(
+                    {
+                        'will_cook': customer_order.customer.restaurant
+                    }
+                )
+                order.status = 'prepare'
+                order.save()
+                order_items.update({
+                    'test': order.status
+                })
 
         if order.id == order_items['id']:
             processed_orders.append(order_items)
