@@ -9,6 +9,7 @@ from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Customer
 from .models import Order
+from geocoderapp.models import GeoCode
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -131,4 +132,9 @@ class Customer(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(GeoCode)
+class GeoCodeApp(admin.ModelAdmin):
     pass

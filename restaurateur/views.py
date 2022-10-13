@@ -7,8 +7,10 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
+from geocoderapp.models import GeoCode
 
 from star_burger.settings import YANDEX_API_KEY
+
 
 import requests
 from geopy import distance
@@ -122,12 +124,13 @@ def view_orders(request):
     orders = Order.objects.full_price().select_related('customer')
     processed_orders = []
 
-    for order in orders.iterator():
+    for order in orders:
         restaurant_products = RestaurantMenuItem.objects.filter(
             product=order.product
-        ).prefetch_related('product')
+        ).prefetch_related('product').select_related('restaurant')
 
-        customer_orders = orders.filter(customer=order.customer.id).select_related('customer')
+        customer_orders = orders.filter(
+            customer=order.customer.id).select_related('customer')
 
         for customer_order in customer_orders:
             order_items = {
@@ -153,21 +156,36 @@ def view_orders(request):
 
             restaurants = []
 
+            user_lon, user_lat = fetch_coordinates(
+                YANDEX_API_KEY, order.customer.address
+            )
+
             for restaurant_product in restaurant_products:
                 if order.product.name == restaurant_product.product.name:
-                    user_lon, user_lat = fetch_coordinates(
-                        YANDEX_API_KEY, order.customer.address
-                    )
+                    try:
+                        geocoder = GeoCode.objects.get(
+                            address=restaurant_product.restaurant.address)
+                        rest_lat, rest_lon = geocoder.latitude, geocoder.longitude
 
-                    rest_lon, rest_lat = fetch_coordinates(
-                        YANDEX_API_KEY, restaurant_product.restaurant.address
-                    )
+                        distanse = int(distance.distance(
+                            (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
-                    distanse = int(distance.distance(
-                        (user_lat, user_lon), (rest_lat, rest_lon)).km)
+                        restaurant = {
+                            restaurant_product.restaurant.name: distanse}
+                        restaurants.append(restaurant)
 
-                    restaurant = {restaurant_product.restaurant.name: distanse}
-                    restaurants.append(restaurant)
+                    except:
+
+                        rest_lon, rest_lat = fetch_coordinates(
+                            YANDEX_API_KEY, restaurant_product.restaurant.address
+                        )
+
+                        distanse = int(distance.distance(
+                            (user_lat, user_lon), (rest_lat, rest_lon)).km)
+
+                        restaurant = {
+                            restaurant_product.restaurant.name: distanse}
+                        restaurants.append(restaurant)
 
             order_items.update({
                 'restaurants': restaurants

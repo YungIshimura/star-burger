@@ -22,6 +22,7 @@ YANDEX_API_KEY = env('YANDEX_API_KEY')
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
     'restaurateur.apps.RestaurateurConfig',
+    'geocoderapp.apps.GeocoderappConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
