@@ -1,19 +1,18 @@
 from datetime import datetime
-from django import forms
-from django.shortcuts import redirect, render
-from django.views import View
-from django.urls import reverse_lazy
-from django.contrib.auth.decorators import user_passes_test
-
-from django.contrib.auth import authenticate, login
-from django.contrib.auth import views as auth_views
-from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
-from geocoderapp.models import GeoCode
-
-from star_burger.settings import YANDEX_API_KEY
 
 import requests
+from django import forms
+from django.contrib.auth import authenticate, login
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.views import View
 from geopy import distance
+
+from foodcartapp.models import Order, Product, Restaurant, RestaurantMenuItem
+from geocoderapp.models import GeoCode
+from star_burger.settings import YANDEX_API_KEY
 
 
 class Login(forms.Form):

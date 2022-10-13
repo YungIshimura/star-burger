@@ -1,26 +1,11 @@
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
-from django.db import transaction
 
-from .models import Order, Product, Customer
-
-
-class OrderSerializer(ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['product', 'quantity']
-
-
-class CustomerSerializer(ModelSerializer):
-    products = OrderSerializer(many=True, allow_empty=False, write_only=True)
-
-    class Meta:
-        model = Customer
-        fields = ['id', 'firstname', 'lastname',
-                  'phonenumber', 'address', 'products']
+from .models import Customer, Order, Product
+from .serializers import CustomerSerializer
 
 
 def banners_list_api(request):
