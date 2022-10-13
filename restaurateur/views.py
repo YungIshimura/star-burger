@@ -1,3 +1,4 @@
+from datetime import datetime
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
@@ -10,7 +11,6 @@ from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 from geocoderapp.models import GeoCode
 
 from star_burger.settings import YANDEX_API_KEY
-
 
 import requests
 from geopy import distance
@@ -179,7 +179,12 @@ def view_orders(request):
                     rest_lon, rest_lat = fetch_coordinates(
                         YANDEX_API_KEY, restaurant.restaurant.address
                     )
-
+                    GeoCode.objects.create(
+                        latitude=rest_lat,
+                        longitude=rest_lon,
+                        address=restaurant.restaurant.address,
+                        date=datetime.now()
+                    )
                     distanse = int(distance.distance(
                         (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
