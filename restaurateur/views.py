@@ -8,6 +8,11 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 
+from star_burger.settings import YANDEX_API_KEY
+
+import requests
+from geopy import distance
+
 
 class Login(forms.Form):
     username = forms.CharField(
@@ -90,39 +95,83 @@ def view_restaurants(request):
     })
 
 
+def fetch_coordinates(apikey, address):
+    base_url = "https://geocode-maps.yandex.ru/1.x"
+
+    response = requests.get(base_url, params={
+        "geocode": address,
+        "apikey": apikey,
+        "format": "json",
+    })
+
+    response.raise_for_status()
+    found_places = response.json(
+    )['response']['GeoObjectCollection']['featureMember']
+
+    if not found_places:
+        return None
+
+    most_relevant = found_places[0]
+    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
+
+    return lon, lat
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.full_price().prefetch_related('customer')
+    orders = Order.objects.full_price().select_related('customer')
     processed_orders = []
 
-    for order in orders:
-        restaurants = RestaurantMenuItem.objects.filter(product=order.product)
-        customer_orders = orders.filter(customer=order.customer.id)
-        cost = sum([order.full_price for order in customer_orders])
+    for order in orders.iterator():
+        restaurant_products = RestaurantMenuItem.objects.filter(
+            product=order.product
+        ).prefetch_related('product')
+
+        customer_orders = orders.filter(customer=order.customer.id).select_related('customer')
 
         for customer_order in customer_orders:
             order_items = {
                 'id': customer_order.id,
                 'status': order.get_status_display(),
                 'payment': order.customer.get_payment_display(),
-                'price': cost,
+                'price': sum([order.full_price for order in customer_orders]),
                 'customer': customer_order.customer,
                 'phonenumber': customer_order.customer.phonenumber,
                 'address': customer_order.customer.address,
                 'comment': customer_order.customer.comment,
-                'restaurants': [restaurant.restaurant for restaurant in restaurants]
             }
+
             if customer_order.customer.restaurant:
                 order_items.update(
                     {
                         'will_cook': customer_order.customer.restaurant
                     }
                 )
+
                 order.status = 'prepare'
                 order.save()
-                order_items.update({
-                    'test': order.status
-                })
+
+            restaurants = []
+
+            for restaurant_product in restaurant_products:
+                if order.product.name == restaurant_product.product.name:
+                    user_lon, user_lat = fetch_coordinates(
+                        YANDEX_API_KEY, order.customer.address
+                    )
+
+                    rest_lon, rest_lat = fetch_coordinates(
+                        YANDEX_API_KEY, restaurant_product.restaurant.address
+                    )
+
+                    distanse = int(distance.distance(
+                        (user_lat, user_lon), (rest_lat, rest_lon)).km)
+
+                    restaurant = {restaurant_product.restaurant.name: distanse}
+                    restaurants.append(restaurant)
+
+            order_items.update({
+                'restaurants': restaurants
+            })
 
         if order.id == order_items['id']:
             processed_orders.append(order_items)

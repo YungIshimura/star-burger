@@ -46,10 +46,13 @@
           <summary><b>Могут приготовить</b></summary>
             <ul>
               {% for restaurant in item.restaurants%}
-              <li>{{restaurant}}</li>
+                {% for restaurant_name, restaurant_address in restaurant.items%}
+              <li>{{restaurant_name}} - {{restaurant_address}}</li>
+                {% endfor %}
               {% endfor %}
           </ul>
         </td></details>
+
           {% endif %}
         <td><a href={% url "admin:foodcartapp_customer_change" object_id=item.customer.id%}?next={{request.path|urlencode}}>Редактировать</a><td>
       </tr>
