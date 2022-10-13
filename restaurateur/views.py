@@ -125,7 +125,7 @@ def view_orders(request):
     processed_orders = []
 
     for order in orders:
-        restaurant_products = RestaurantMenuItem.objects.filter(
+        restaurants = RestaurantMenuItem.objects.filter(
             product=order.product
         ).prefetch_related('product').select_related('restaurant')
 
@@ -154,42 +154,42 @@ def view_orders(request):
                 order.status = 'prepare'
                 order.save()
 
-            restaurants = []
+            restaurants_geocode = []
 
-            user_lon, user_lat = fetch_coordinates(
-                YANDEX_API_KEY, order.customer.address
-            )
+        user_lon, user_lat = fetch_coordinates(
+            YANDEX_API_KEY, order.customer.address
+        )
 
-            for restaurant_product in restaurant_products:
-                if order.product.name == restaurant_product.product.name:
-                    try:
-                        geocoder = GeoCode.objects.get(
-                            address=restaurant_product.restaurant.address)
-                        rest_lat, rest_lon = geocoder.latitude, geocoder.longitude
+        for restaurant in restaurants:
+            if order.product.name == restaurant.product.name:
+                try:
+                    geocoder = GeoCode.objects.get(
+                        address=restaurant.restaurant.address)
+                    rest_lat, rest_lon = geocoder.latitude, geocoder.longitude
 
-                        distanse = int(distance.distance(
-                            (user_lat, user_lon), (rest_lat, rest_lon)).km)
+                    distanse = int(distance.distance(
+                        (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
-                        restaurant = {
-                            restaurant_product.restaurant.name: distanse}
-                        restaurants.append(restaurant)
+                    restaurant = {
+                        restaurant.restaurant.name: distanse}
+                    restaurants_geocode.append(restaurant)
 
-                    except:
+                except:
 
-                        rest_lon, rest_lat = fetch_coordinates(
-                            YANDEX_API_KEY, restaurant_product.restaurant.address
-                        )
+                    rest_lon, rest_lat = fetch_coordinates(
+                        YANDEX_API_KEY, restaurant.restaurant.address
+                    )
 
-                        distanse = int(distance.distance(
-                            (user_lat, user_lon), (rest_lat, rest_lon)).km)
+                    distanse = int(distance.distance(
+                        (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
-                        restaurant = {
-                            restaurant_product.restaurant.name: distanse}
-                        restaurants.append(restaurant)
+                    restaurant = {
+                        restaurant.restaurant.name: distanse}
+                    restaurants_geocode.append(restaurant)
 
-            order_items.update({
-                'restaurants': restaurants
-            })
+        order_items.update({
+            'restaurants': restaurants_geocode
+        })
 
         if order.id == order_items['id']:
             processed_orders.append(order_items)
