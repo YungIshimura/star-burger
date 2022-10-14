@@ -122,7 +122,7 @@ def fetch_coordinates(apikey, address):
 def view_orders(request):
     orders = Order.objects.full_price().select_related('customer')
     processed_orders = []
-
+    test = {}
     for order in orders:
         restaurants = RestaurantMenuItem.objects.filter(
             product=order.product
@@ -169,12 +169,11 @@ def view_orders(request):
                     distance_to_restaurant = int(distance.distance(
                         (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
-                    restaurant = {
+                    restaurant_geocode = {
                         restaurant.restaurant.name: distance_to_restaurant}
-                    restaurants_geocode.append(restaurant)
+                    restaurants_geocode.append(restaurant_geocode)
 
-                except:
-
+                except TypeError:
                     rest_lon, rest_lat = fetch_coordinates(
                         YANDEX_API_KEY, restaurant.restaurant.address
                     )
@@ -187,10 +186,10 @@ def view_orders(request):
                     distance_to_restaurant = int(distance.distance(
                         (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
-                    restaurant = {
+                    restaurant_geocode = {
                         restaurant.restaurant.name: distance_to_restaurant}
 
-                    restaurants_geocode.append(restaurant)
+                    restaurants_geocode.append(restaurant_geocode)
 
         order_items.update({
             'restaurants': restaurants_geocode
