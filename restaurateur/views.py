@@ -122,7 +122,7 @@ def fetch_coordinates(apikey, address):
 def view_orders(request):
     orders = Order.objects.full_price().select_related('customer')
     processed_orders = []
-    test = {}
+
     for order in orders:
         restaurants = RestaurantMenuItem.objects.filter(
             product=order.product
