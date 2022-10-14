@@ -166,11 +166,11 @@ def view_orders(request):
                         address=restaurant.restaurant.address)
                     rest_lat, rest_lon = geocoder.latitude, geocoder.longitude
 
-                    distanse = int(distance.distance(
+                    distance_to_restaurant = int(distance.distance(
                         (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
                     restaurant = {
-                        restaurant.restaurant.name: distanse}
+                        restaurant.restaurant.name: distance_to_restaurant}
                     restaurants_geocode.append(restaurant)
 
                 except:
@@ -184,11 +184,12 @@ def view_orders(request):
                         address=restaurant.restaurant.address,
                         date=datetime.now()
                     )
-                    distanse = int(distance.distance(
+                    distance_to_restaurant = int(distance.distance(
                         (user_lat, user_lon), (rest_lat, rest_lon)).km)
 
                     restaurant = {
-                        restaurant.restaurant.name: distanse}
+                        restaurant.restaurant.name: distance_to_restaurant}
+
                     restaurants_geocode.append(restaurant)
 
         order_items.update({
