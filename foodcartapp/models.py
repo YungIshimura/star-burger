@@ -59,8 +59,8 @@ class Product(models.Model):
         max_length=50
     )
     category = models.ForeignKey(
+        'Категория',
         ProductCategory,
-        verbose_name='категория',
         related_name='products',
         null=True,
         blank=True,
@@ -97,16 +97,16 @@ class Product(models.Model):
 
 class RestaurantMenuItem(models.Model):
     restaurant = models.ForeignKey(
+        'Ресторан',
         Restaurant,
         related_name='menu_items',
-        verbose_name="ресторан",
         on_delete=models.CASCADE,
     )
     product = models.ForeignKey(
+        'Продукт',
         Product,
         on_delete=models.CASCADE,
         related_name='menu_items',
-        verbose_name='продукт',
     )
     availability = models.BooleanField(
         'в продаже',
@@ -182,12 +182,12 @@ class Customer(models.Model):
         db_index=True
     )
     restaurant = models.ForeignKey(
+        'Рестораны',
         Restaurant,
         on_delete=models.CASCADE,
         blank=True,
         null=True,
         related_name='restaurants',
-        verbose_name='Кто приготовит'
     )
 
     class Meta:
@@ -214,17 +214,18 @@ class Order(models.Model):
         ('completed', 'Выполнен')
     )
     customer = models.ForeignKey(
+        'Заказчик',
         Customer,
         on_delete=models.CASCADE,
         related_name='customer_orders',
-        verbose_name='Заказчик')
+    )
 
     product = models.ForeignKey(
+        'Продукты в заказе',
         Product,
         on_delete=models.CASCADE,
         default=None,
         related_name='ordered_products',
-        verbose_name='продукт',
     )
     final_price = models.DecimalField(
         'Окончательная стоимость',
