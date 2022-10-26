@@ -82,8 +82,8 @@ def register_order(request):
             product=products['product'],
             quantity=products['quantity']
         )
-        if not order.final_price:
-            order.final_price = order.product.price
-            order.save()
+        
+    order.final_price = order.product.price
+    order.save()
 
     return Response(serializer.data)
