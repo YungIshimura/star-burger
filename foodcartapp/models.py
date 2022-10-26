@@ -216,14 +216,14 @@ class Order(models.Model):
     customer = models.ForeignKey(
         Customer,
         on_delete=models.CASCADE,
-        related_name='orders',
+        related_name='customer_orders',
         verbose_name='Заказчик')
 
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         default=None,
-        related_name='products',
+        related_name='ordered_products',
         verbose_name='продукт',
     )
     final_price = models.DecimalField(
