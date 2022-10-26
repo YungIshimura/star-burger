@@ -187,7 +187,7 @@ class Customer(models.Model):
         blank=True,
         null=True,
         related_name='restaurants',
-        verbose_name='Кто приготовит'
+        verbose_name='Ресторан'
     )
 
     class Meta:
@@ -224,7 +224,7 @@ class Order(models.Model):
         on_delete=models.CASCADE,
         default=None,
         related_name='ordered_products',
-        verbose_name='продукт',
+        verbose_name='Продукты',
     )
     final_price = models.DecimalField(
         'Окончательная стоимость',
