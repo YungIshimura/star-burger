@@ -156,7 +156,6 @@ class Customer(models.Model):
     comment = models.TextField(
         'Комментарий',
         blank=True,
-        null=True
     )
     registered_at = models.DateTimeField(
         'Время и дата заказа',
