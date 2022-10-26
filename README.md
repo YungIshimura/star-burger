@@ -58,7 +58,10 @@ pip install -r requirements.txt
 ```sh
 SECRET_KEY=django-insecure-0if40nf4nf93n4
 ```
-
+Там же определите ```YANDEX_API_KEY```. Перейдите [по этой ссылке](https://developer.tech.yandex.ru/services/) -  https://developer.tech.yandex.ru/services/ и подключите ```JavaScript API и HTTP Геокодер```. Полученный ключ запишите в тот же ```.env``` файл, что и ```SECRET_KEY```
+```sh
+YANDEX_API_KEY='Ваш ключ'
+```
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
 ```sh
