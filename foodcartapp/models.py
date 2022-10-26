@@ -186,7 +186,7 @@ class Customer(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name='restaurant',
+        related_name='restaurants',
         verbose_name='Кто приготовит'
     )
 
@@ -216,14 +216,14 @@ class Order(models.Model):
     customer = models.ForeignKey(
         Customer,
         on_delete=models.CASCADE,
-        related_name='order',
+        related_name='orders',
         verbose_name='Заказчик')
 
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         default=None,
-        related_name='product',
+        related_name='products',
         verbose_name='продукт',
     )
     final_price = models.DecimalField(
