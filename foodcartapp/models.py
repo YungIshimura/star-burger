@@ -199,7 +199,7 @@ class Customer(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
-    def full_price(self):
+    def get_full_price(self):
         full_price = self.annotate(full_price=Sum(
             F('quantity') * F('product__price')))
 
