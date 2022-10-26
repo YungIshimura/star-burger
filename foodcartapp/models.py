@@ -237,7 +237,8 @@ class Order(models.Model):
     )
     quantity = models.IntegerField(
         'Количество',
-        default=1)
+        default=1,
+        validators=[MinValueValidator(1)])
 
     status = models.CharField(
         'Статус заказа',
