@@ -75,7 +75,6 @@ def register_order(request):
         address=serializer.validated_data['address'],
     )
 
-    print(order)
 
     order = Order.objects.bulk_create(
         [Order(

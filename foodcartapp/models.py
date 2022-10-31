@@ -216,7 +216,7 @@ class Order(models.Model):
     customer = models.ForeignKey(
         Customer,
         on_delete=models.CASCADE,
-        related_name='customer_orders',
+        related_name='orders',
         verbose_name='Заказчик')
 
     product = models.ForeignKey(
