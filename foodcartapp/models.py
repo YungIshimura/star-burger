@@ -228,7 +228,6 @@ class Order(models.Model):
     )
     final_price = models.DecimalField(
         'Окончательная стоимость',
-        null=True,
         max_digits=8,
         decimal_places=2,
         validators=[MinValueValidator(0)]

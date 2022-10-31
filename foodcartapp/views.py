@@ -75,15 +75,16 @@ def register_order(request):
         address=serializer.validated_data['address'],
     )
 
+    print(order)
+
     order = Order.objects.bulk_create(
         [Order(
             customer=customer,
             product=products['product'],
-            quantity=products['quantity'])
+            quantity=products['quantity'],
+            final_price = products['product'].price)
+            
             for products in order
          ])[0]
-
-    order.final_price = order.product.price
-    order.save()
 
     return Response(serializer.data)
