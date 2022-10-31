@@ -223,7 +223,7 @@ class Order(models.Model):
         Product,
         on_delete=models.CASCADE,
         default=None,
-        related_name='ordered_products',
+        related_name='orders',
         verbose_name='Продукты',
     )
     final_price = models.DecimalField(
