@@ -143,10 +143,10 @@ def view_orders(request):
                 'comment': customer_order.customer.comment,
             }
 
-            if customer_order.customer.restaurant:
+            if customer_order.customer.provider:
                 order_items.update(
                     {
-                        'will_cook': customer_order.customer.restaurant
+                        'will_cook': customer_order.customer.provider
                     }
                 )
 

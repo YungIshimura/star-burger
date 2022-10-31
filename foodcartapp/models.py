@@ -181,7 +181,7 @@ class Customer(models.Model):
         default='not specified',
         db_index=True
     )
-    restaurant = models.ForeignKey(
+    provider = models.ForeignKey(
         Restaurant,
         on_delete=models.CASCADE,
         blank=True,
