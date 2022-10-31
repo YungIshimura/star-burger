@@ -120,7 +120,7 @@ def fetch_coordinates(apikey, address):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.get_cost().select_related('customer')
+    orders = Order.objects.get_amount().select_related('customer')
     processed_orders = []
 
     for order in orders:
