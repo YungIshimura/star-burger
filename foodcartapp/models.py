@@ -10,11 +10,13 @@ class Restaurant(models.Model):
         'название',
         max_length=50
     )
+
     address = models.CharField(
         'адрес',
         max_length=100,
         blank=True,
     )
+
     contact_phone = models.CharField(
         'контактный телефон',
         max_length=50,
@@ -58,6 +60,7 @@ class Product(models.Model):
         'название',
         max_length=50
     )
+
     category = models.ForeignKey(
         ProductCategory,
         verbose_name='категория',
@@ -66,25 +69,30 @@ class Product(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )
+
     price = models.DecimalField(
         'цена',
         max_digits=8,
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+
     image = models.ImageField(
         'картинка'
     )
+
     special_status = models.BooleanField(
         'спец.предложение',
         default=False,
         db_index=True,
     )
+
     description = models.TextField(
         'описание',
         max_length=300,
         blank=True,
     )
+
     objects = ProductQuerySet.as_manager()
 
     class Meta:
@@ -102,12 +110,14 @@ class RestaurantMenuItem(models.Model):
         verbose_name="ресторан",
         on_delete=models.CASCADE,
     )
+
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         related_name='menu_items',
         verbose_name='продукт',
     )
+
     availability = models.BooleanField(
         'в продаже',
         default=True,
@@ -125,20 +135,28 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
-class Customer(models.Model):
+class Order(models.Model):
     PAYMENT_METHOD = (
         ('not specified', 'Не указан'),
         ('cash', 'Наличными'),
         ('card', 'Картой')
     )
+
+    STATUS = (
+        ('raw', 'Необработанный'),
+        ('prepare', 'Готовиться'),
+        ('delivered', 'Передан курьеру'),
+        ('completed', 'Выполнен')
+    )
+
     firstname = models.CharField(
-        'Имя',
+        'Имя заказчика',
         max_length=20,
         blank=True
     )
 
     lastname = models.CharField(
-        'Фамилия',
+        'Фамилия заказчика',
         max_length=50,
         blank=True
     )
@@ -157,23 +175,27 @@ class Customer(models.Model):
         'Комментарий',
         blank=True,
     )
+
     registered_at = models.DateTimeField(
         'Время и дата заказа',
         default=timezone.now,
         db_index=True
     )
+
     called_at = models.DateTimeField(
         'Время и дата звонка',
         blank=True,
         null=True,
         db_index=True
     )
+
     delivered_at = models.DateTimeField(
         'Время и дата доставки',
         blank=True,
         null=True,
         db_index=True
     )
+
     payment = models.CharField(
         'Способ оплаты',
         max_length=15,
@@ -181,6 +203,7 @@ class Customer(models.Model):
         default='not specified',
         db_index=True
     )
+
     provider = models.ForeignKey(
         Restaurant,
         on_delete=models.CASCADE,
@@ -190,9 +213,17 @@ class Customer(models.Model):
         verbose_name='Ресторан'
     )
 
+    status = models.CharField(
+        'Статус заказа',
+        max_length=20,
+        choices=STATUS,
+        default='raw',
+        db_index=True
+    )
+
     class Meta:
-        verbose_name = 'Заказчик'
-        verbose_name_plural = 'Заказчики'
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
 
     def __str__(self):
         return f'{self.id} {self.firstname} {self.lastname}'
@@ -206,18 +237,13 @@ class OrderQuerySet(models.QuerySet):
         return amount
 
 
-class Order(models.Model):
-    STATUS = (
-        ('raw', 'Необработанный'),
-        ('prepare', 'Готовиться'),
-        ('delivered', 'Передан курьеру'),
-        ('completed', 'Выполнен')
-    )
-    customer = models.ForeignKey(
-        Customer,
+class OrderItem(models.Model):
+    order = models.ForeignKey(
+        Order,
         on_delete=models.CASCADE,
         related_name='orders',
-        verbose_name='Заказчик')
+        verbose_name='Заказчик'
+    )
 
     product = models.ForeignKey(
         Product,
@@ -226,29 +252,25 @@ class Order(models.Model):
         related_name='orders',
         verbose_name='Продукты',
     )
+
     final_price = models.DecimalField(
         'Окончательная стоимость',
         max_digits=8,
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+
     quantity = models.IntegerField(
         'Количество',
         default=1,
-        validators=[MinValueValidator(1)])
-
-    status = models.CharField(
-        'Статус заказа',
-        max_length=20,
-        choices=STATUS,
-        default='raw',
-        db_index=True
+        validators=[MinValueValidator(1)]
     )
+
     objects = OrderQuerySet.as_manager()
 
     def __str__(self):
-        return f'{self.id} {self.customer} - {self.product}: {self.quantity}'
+        return f'{self.id} {self.order} - {self.product}: {self.quantity}'
 
     class Meta:
-        verbose_name = 'Заказ'
-        verbose_name_plural = 'Заказы'
+        verbose_name = 'Атрибуты заказа'
+        verbose_name_plural = 'Атрибуты заказов'

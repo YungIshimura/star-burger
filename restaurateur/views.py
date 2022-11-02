@@ -10,7 +10,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from geopy import distance
 
-from foodcartapp.models import Order, Product, Restaurant, RestaurantMenuItem
+from foodcartapp.models import OrderItem, Product, Restaurant, RestaurantMenuItem
 from geocoderapp.models import GeoCode
 from star_burger.settings import YANDEX_API_KEY
 
@@ -120,47 +120,47 @@ def fetch_coordinates(apikey, address):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.get_amount().select_related('customer')
+    order_items = OrderItem.objects.get_amount().select_related('order')
     processed_orders = []
 
-    for order in orders:
+    for order_item in order_items:
         restaurants = RestaurantMenuItem.objects.filter(
-            product=order.product
+            product=order_item.product
         ).prefetch_related('product').select_related('restaurant')
 
-        customer_orders = orders.filter(
-            customer=order.customer.id).select_related('customer')
+        order_items = order_item.filter(
+            customer=order_item.order.id).select_related('order')
 
-        for customer_order in customer_orders:
+        for order_item in order_items:
             order_items = {
-                'id': customer_order.id,
-                'status': order.get_status_display(),
-                'payment': order.customer.get_payment_display(),
-                'price': sum([order.full_price for order in customer_orders]),
-                'customer': customer_order.customer,
-                'phonenumber': customer_order.customer.phonenumber,
-                'address': customer_order.customer.address,
-                'comment': customer_order.customer.comment,
+                'id': order_item.id,
+                'status': order_item.order.get_status_display(),
+                'payment': order_item.order.get_payment_display(),
+                'price': sum([order.full_price for order in order_item]),
+                'customer': order_item.order,
+                'phonenumber': order_item.order.phonenumber,
+                'address': order_item.order.address,
+                'comment': order_item.order.comment,
             }
 
-            if customer_order.customer.provider:
+            if order_item.order.provider:
                 order_items.update(
                     {
-                        'will_cook': customer_order.customer.provider
+                        'will_cook': order_item.order.provider
                     }
                 )
 
-                order.status = 'prepare'
-                order.save()
+                order_item.order.status = 'prepare'
+                order_item.save()
 
             restaurants_geocode = []
 
         user_lon, user_lat = fetch_coordinates(
-            YANDEX_API_KEY, order.customer.address
+            YANDEX_API_KEY, order_item.order.address
         )
 
         for restaurant in restaurants:
-            if order.product.name == restaurant.product.name:
+            if order_item.product.name == restaurant.product.name:
                 try:
                     geocoder = GeoCode.objects.get(
                         address=restaurant.restaurant.address)
@@ -195,7 +195,7 @@ def view_orders(request):
             'restaurants': restaurants_geocode
         })
 
-        if order.id == order_items['id']:
+        if order_item.id == order_items['id']:
             processed_orders.append(order_items)
 
     return render(request, template_name='order_items.html', context={

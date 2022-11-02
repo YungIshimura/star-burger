@@ -7,8 +7,8 @@ from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
-from .models import Customer
 from .models import Order
+from .models import OrderItem
 from geocoderapp.models import GeoCode
 
 
@@ -18,7 +18,7 @@ class RestaurantMenuItemInline(admin.TabularInline):
 
 
 class OrderInline(admin.TabularInline):
-    model = Order
+    model = OrderItem
     extra = 0
 
 
@@ -114,8 +114,8 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Customer)
-class Customer(admin.ModelAdmin):
+@admin.register(Order)
+class Order(admin.ModelAdmin):
     inlines = [
         OrderInline
     ]
@@ -128,7 +128,7 @@ class Customer(admin.ModelAdmin):
             return res
 
 
-@admin.register(Order)
+@admin.register(OrderItem)
 class OrderAdmin(admin.ModelAdmin):
     pass
 

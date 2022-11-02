@@ -4,8 +4,8 @@ from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Customer, Order, Product
-from .serializers import CustomerSerializer
+from .models import Order, OrderItem, Product
+from .serializers import OrderSerializer
 
 
 def banners_list_api(request):
@@ -63,12 +63,12 @@ def product_list_api(request):
 @transaction.atomic
 @api_view(['POST'])
 def register_order(request):
-    serializer = CustomerSerializer(data=request.data)
+    serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    order = serializer.validated_data['products']
+    validated_order = serializer.validated_data['products']
 
-    customer = Customer.objects.create(
+    order_customer = Order.objects.create(
         firstname=serializer.validated_data['firstname'],
         lastname=serializer.validated_data['lastname'],
         phonenumber=serializer.validated_data['phonenumber'],
@@ -76,14 +76,14 @@ def register_order(request):
     )
 
 
-    order = Order.objects.bulk_create(
-        [Order(
-            customer=customer,
+    OrderItem.objects.bulk_create(
+        [OrderItem(
+            order=order_customer,
             product=products['product'],
             quantity=products['quantity'],
             final_price = products['product'].price)
             
-            for products in order
+            for products in validated_order
          ])[0]
 
     return Response(serializer.data)
