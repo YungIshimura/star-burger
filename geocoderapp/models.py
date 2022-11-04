@@ -25,6 +25,7 @@ class GeoCode(models.Model):
 
     class Meta:
         verbose_name = 'Месторасположение ресторана'
-    
+        verbose_name_plural = 'Месторасположение ресторанов'
+
     def __str__(self):
         return self.address

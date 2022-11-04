@@ -118,6 +118,48 @@ def fetch_coordinates(apikey, address):
     return lon, lat
 
 
+def get_restaurants_geocode(order_item, restaurants):
+    restaurants_geocode = []
+
+    user_lon, user_lat = fetch_coordinates(
+        YANDEX_API_KEY, order_item.order.address
+    )
+
+    for restaurant in restaurants:
+        if order_item.product.name == restaurant.product.name:
+            try:
+                geocoder = GeoCode.objects.get(
+                    address=restaurant.restaurant.address)
+                rest_lat, rest_lon = geocoder.latitude, geocoder.longitude
+
+                distance_to_restaurant = int(distance.distance(
+                    (user_lat, user_lon), (rest_lat, rest_lon)).km)
+
+                restaurant_geocode = {
+                    restaurant.restaurant.name: distance_to_restaurant}
+                restaurants_geocode.append(restaurant_geocode)
+
+            except GeoCode.DoesNotExist as e:
+                rest_lon, rest_lat = fetch_coordinates(
+                    YANDEX_API_KEY, restaurant.restaurant.address
+                )
+                GeoCode.objects.create(
+                    latitude=rest_lat,
+                    longitude=rest_lon,
+                    address=restaurant.restaurant.address,
+                    date=datetime.now()
+                )
+                distance_to_restaurant = int(distance.distance(
+                    (user_lat, user_lon), (rest_lat, rest_lon)).km)
+
+                restaurant_geocode = {
+                    restaurant.restaurant.name: distance_to_restaurant}
+
+                restaurants_geocode.append(restaurant_geocode)
+
+    return restaurants_geocode
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     order_items = OrderItem.objects.get_amount().select_related('order')
@@ -128,75 +170,39 @@ def view_orders(request):
             product=order_item.product
         ).prefetch_related('product').select_related('restaurant')
 
-        order_items = order_item.filter(
-            customer=order_item.order.id).select_related('order')
+        filtered_order_items = order_items.filter(
+            order=order_item.order.id).select_related('order')
 
-        for order_item in order_items:
-            order_items = {
-                'id': order_item.id,
-                'status': order_item.order.get_status_display(),
-                'payment': order_item.order.get_payment_display(),
-                'price': sum([order.full_price for order in order_item]),
-                'customer': order_item.order,
-                'phonenumber': order_item.order.phonenumber,
-                'address': order_item.order.address,
-                'comment': order_item.order.comment,
+        for order_attr in filtered_order_items:
+            order_attr_for_managers = {
+                'id': order_attr.id,
+                'status': order_attr.order.get_status_display(),
+                'payment': order_attr.order.get_payment_display(),
+                'price': sum([order_attr.full_price for order_attr in filtered_order_items]),
+                'order': order_attr.order,
+                'phonenumber': order_attr.order.phonenumber,
+                'address': order_attr.order.address,
+                'comment': order_attr.order.comment,
             }
 
-            if order_item.order.provider:
-                order_items.update(
+            if order_attr.order.provider:
+                order_attr_for_managers.update(
                     {
-                        'will_cook': order_item.order.provider
+                        'will_cook': order_attr.order.provider
                     }
                 )
 
-                order_item.order.status = 'prepare'
-                order_item.save()
+                order_attr.order.status = 'prepare'
+                order_attr.order.save()
 
-            restaurants_geocode = []
+        restaurants_geocode = get_restaurants_geocode(order_item, restaurants)
 
-        user_lon, user_lat = fetch_coordinates(
-            YANDEX_API_KEY, order_item.order.address
-        )
-
-        for restaurant in restaurants:
-            if order_item.product.name == restaurant.product.name:
-                try:
-                    geocoder = GeoCode.objects.get(
-                        address=restaurant.restaurant.address)
-                    rest_lat, rest_lon = geocoder.latitude, geocoder.longitude
-
-                    distance_to_restaurant = int(distance.distance(
-                        (user_lat, user_lon), (rest_lat, rest_lon)).km)
-
-                    restaurant_geocode = {
-                        restaurant.restaurant.name: distance_to_restaurant}
-                    restaurants_geocode.append(restaurant_geocode)
-
-                except TypeError:
-                    rest_lon, rest_lat = fetch_coordinates(
-                        YANDEX_API_KEY, restaurant.restaurant.address
-                    )
-                    GeoCode.objects.create(
-                        latitude=rest_lat,
-                        longitude=rest_lon,
-                        address=restaurant.restaurant.address,
-                        date=datetime.now()
-                    )
-                    distance_to_restaurant = int(distance.distance(
-                        (user_lat, user_lon), (rest_lat, rest_lon)).km)
-
-                    restaurant_geocode = {
-                        restaurant.restaurant.name: distance_to_restaurant}
-
-                    restaurants_geocode.append(restaurant_geocode)
-
-        order_items.update({
+        order_attr_for_managers.update({
             'restaurants': restaurants_geocode
         })
 
-        if order_item.id == order_items['id']:
-            processed_orders.append(order_items)
+        if order_item.id == order_attr_for_managers['id']:
+            processed_orders.append(order_attr_for_managers)
 
     return render(request, template_name='order_items.html', context={
         'order_items': processed_orders
