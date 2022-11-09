@@ -147,7 +147,7 @@ def get_restaurants_geocode(order_item, restaurants):
                     latitude=rest_lat,
                     longitude=rest_lon,
                     address=restaurant.restaurant.address,
-                    date=datetime.now()
+                    requested_at=datetime.now()
                 )
                 distance_to_restaurant = int(distance.distance(
                     (user_lat, user_lon), (rest_lat, rest_lon)).km)
@@ -177,7 +177,7 @@ def view_orders(request):
             order_attr_for_managers = {
                 'id': order_attr.id,
                 'status': order_attr.order.get_status_display(),
-                'payment': order_attr.order.get_payment_display(),
+                'payment_method': order_attr.order.get_payment_method_display(),
                 'price': sum([order_attr.full_price for order_attr in filtered_order_items]),
                 'order': order_attr.order,
                 'phonenumber': order_attr.order.phonenumber,

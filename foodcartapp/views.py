@@ -84,6 +84,6 @@ def register_order(request):
             final_price = products['product'].price)
             
             for products in validated_order
-         ])[0]
+         ])
 
     return Response(serializer.data)

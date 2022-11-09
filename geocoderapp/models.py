@@ -18,9 +18,8 @@ class GeoCode(models.Model):
         unique=True
     )
 
-    date = models.DateTimeField(
+    requested_at = models.DateTimeField(
         'Дата запроса',
-        unique=True
     )
 
     class Meta:
