@@ -9,8 +9,8 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from geopy import distance
-
-from foodcartapp.models import OrderItem, Product, Restaurant, RestaurantMenuItem
+from django.db.models import OuterRef
+from foodcartapp.models import Order, OrderItem, Product, Restaurant, RestaurantMenuItem
 from geocoderapp.models import GeoCode
 from star_burger.settings import YANDEX_API_KEY
 
@@ -120,7 +120,6 @@ def fetch_coordinates(apikey, address):
 
 def get_restaurants_geocode(order_item, restaurants):
     restaurants_geocode = []
-
     user_lon, user_lat = fetch_coordinates(
         YANDEX_API_KEY, order_item.order.address
     )
@@ -137,16 +136,17 @@ def get_restaurants_geocode(order_item, restaurants):
 
                 restaurant_geocode = {
                     restaurant.restaurant.name: distance_to_restaurant}
+
                 restaurants_geocode.append(restaurant_geocode)
 
             except GeoCode.DoesNotExist as e:
                 rest_lon, rest_lat = fetch_coordinates(
-                    YANDEX_API_KEY, restaurant.restaurant.address
+                    YANDEX_API_KEY, restaurant.address
                 )
                 GeoCode.objects.create(
                     latitude=rest_lat,
                     longitude=rest_lon,
-                    address=restaurant.restaurant.address,
+                    address=restaurant.address,
                     requested_at=datetime.now()
                 )
                 distance_to_restaurant = int(distance.distance(
@@ -162,47 +162,49 @@ def get_restaurants_geocode(order_item, restaurants):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    order_items = OrderItem.objects.get_amount().select_related('order')
+    orders = Order.objects.all()
+
+    order_items = OrderItem.objects.all().select_related(
+        'order', 'product')
+    order_items_for_subquery = OrderItem.objects.filter(
+        product=OuterRef('product'))
+
+    restaurants = RestaurantMenuItem.objects.get_restaurants_can_cook(
+        order_items_for_subquery).prefetch_related('product').select_related('restaurant')
+
     processed_orders = []
 
-    for order_item in order_items:
-        restaurants = RestaurantMenuItem.objects.filter(
-            product=order_item.product
-        ).prefetch_related('product').select_related('restaurant')
+    for order in orders:
+        order_attr_for_managers = {
+            'id': order.id,
+            'status': order.get_status_display(),
+            'payment_method': order.get_payment_method_display(),
+            'price': sum([order_attr.amount for order_attr in OrderItem.objects.filter(order=order.id).select_related('order').get_amount()]),
+            'order': order,
+            'phonenumber': order.phonenumber,
+            'address': order.address,
+            'comment': order.comment,
+        }
 
-        filtered_order_items = order_items.filter(
-            order=order_item.order.id).select_related('order')
+        if order.provider:
+            order_attr_for_managers.update(
+                {
+                    'will_cook': order.provider
+                })
 
-        for order_attr in filtered_order_items:
-            order_attr_for_managers = {
-                'id': order_attr.id,
-                'status': order_attr.order.get_status_display(),
-                'payment_method': order_attr.order.get_payment_method_display(),
-                'price': sum([order_attr.full_price for order_attr in filtered_order_items]),
-                'order': order_attr.order,
-                'phonenumber': order_attr.order.phonenumber,
-                'address': order_attr.order.address,
-                'comment': order_attr.order.comment,
-            }
+            order.status = 'prepare'
+            order.save()
 
-            if order_attr.order.provider:
-                order_attr_for_managers.update(
-                    {
-                        'will_cook': order_attr.order.provider
-                    }
-                )
+        for order_item in order_items:
+            restaurants_geocode = get_restaurants_geocode(
+                order_item, restaurants
+            )
 
-                order_attr.order.status = 'prepare'
-                order_attr.order.save()
+            order_attr_for_managers.update({
+                'restaurants': restaurants_geocode
+            })
 
-        restaurants_geocode = get_restaurants_geocode(order_item, restaurants)
-
-        order_attr_for_managers.update({
-            'restaurants': restaurants_geocode
-        })
-
-        if order_item.id == order_attr_for_managers['id']:
-            processed_orders.append(order_attr_for_managers)
+        processed_orders.append(order_attr_for_managers)
 
     return render(request, template_name='order_items.html', context={
         'order_items': processed_orders

@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Subquery
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -103,6 +103,11 @@ class Product(models.Model):
         return self.name
 
 
+class RestaurantMenuItemQuerySet(models.QuerySet):
+    def get_restaurants_can_cook(self, order_item_subquery):
+        return self.filter(availability=True).annotate(order_item=Subquery(order_item_subquery.values('product')))
+
+
 class RestaurantMenuItem(models.Model):
     restaurant = models.ForeignKey(
         Restaurant,
@@ -123,6 +128,8 @@ class RestaurantMenuItem(models.Model):
         default=True,
         db_index=True
     )
+
+    objects = RestaurantMenuItemQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'пункт меню ресторана'
@@ -231,10 +238,8 @@ class Order(models.Model):
 
 class OrderQuerySet(models.QuerySet):
     def get_amount(self):
-        amount = self.annotate(full_price=Sum(
+        return self.annotate(amount=Sum(
             F('quantity') * F('product__price')))
-
-        return amount
 
 
 class OrderItem(models.Model):
