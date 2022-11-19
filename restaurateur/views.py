@@ -165,7 +165,7 @@ def view_orders(request):
     orders = Order.objects.all()
 
     order_items = OrderItem.objects.all().select_related(
-        'order', 'product')
+        'order', 'product').get_amount()
     order_items_for_subquery = OrderItem.objects.filter(
         product=OuterRef('product'))
 
@@ -179,7 +179,7 @@ def view_orders(request):
             'id': order.id,
             'status': order.get_status_display(),
             'payment_method': order.get_payment_method_display(),
-            'price': sum([order_attr.amount for order_attr in OrderItem.objects.filter(order=order.id).select_related('order').get_amount()]),
+            'price': sum([order_item.amount for order_item in order_items.filter(order=order.id)]),
             'order': order,
             'phonenumber': order.phonenumber,
             'address': order.address,
