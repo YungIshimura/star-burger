@@ -142,6 +142,12 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrderQuerySet(models.QuerySet):
+    def get_amount(self):
+        return self.annotate(amount=Sum(
+            F('orders__quantity') * F('orders__product__price')))
+
+
 class Order(models.Model):
     PAYMENT_METHOD = (
         ('not specified', 'Не указан'),
@@ -228,18 +234,14 @@ class Order(models.Model):
         db_index=True
     )
 
+    objects = OrderQuerySet.as_manager()
+
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
 
     def __str__(self):
         return f'{self.id} {self.firstname} {self.lastname}'
-
-
-class OrderQuerySet(models.QuerySet):
-    def get_amount(self):
-        return self.annotate(amount=Sum(
-            F('quantity') * F('product__price')))
 
 
 class OrderItem(models.Model):
@@ -270,8 +272,6 @@ class OrderItem(models.Model):
         default=1,
         validators=[MinValueValidator(1)]
     )
-
-    objects = OrderQuerySet.as_manager()
 
     def __str__(self):
         return f'{self.id} {self.order} - {self.product}: {self.quantity}'

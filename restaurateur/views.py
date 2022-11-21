@@ -162,10 +162,8 @@ def get_restaurants_geocode(order_item, restaurants):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.all()
-
-    order_items = OrderItem.objects.all().select_related(
-        'order', 'product').get_amount()
+    orders = Order.objects.all().get_amount()
+    order_items = OrderItem.objects.all().select_related('product', 'order')
     order_items_for_subquery = OrderItem.objects.filter(
         product=OuterRef('product'))
 
@@ -179,7 +177,7 @@ def view_orders(request):
             'id': order.id,
             'status': order.get_status_display(),
             'payment_method': order.get_payment_method_display(),
-            'price': sum([order_item.amount for order_item in order_items.filter(order=order.id)]),
+            'price': orders.get(id=order.id).amount,
             'order': order,
             'phonenumber': order.phonenumber,
             'address': order.address,
