@@ -171,7 +171,7 @@ def view_orders(request):
         order_items_for_subquery).prefetch_related('product').select_related('restaurant')
 
     processed_orders = []
-
+    
     for order in orders:
         order_attr_for_managers = {
             'id': order.id,
