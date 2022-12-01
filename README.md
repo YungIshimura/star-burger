@@ -62,6 +62,15 @@ SECRET_KEY=django-insecure-0if40nf4nf93n4
 ```sh
 YANDEX_API_KEY='Ваш ключ'
 ```
+Для логирования ошибок в проекте используется [ROLLBAR](https://rollbar.com/). Необходимо [перейти на их сайт - ](https://rollbar.com/) https://rollbar.com/ , пройти регестрацию и получить гайд по подключению. В нём вы увидите ```access_token``` и ```evnironemt```. Их тоже нужно добавить в ```.env``` файл.
+```sh
+ROLLBAR_ACCESS_TOKEN = 'Ваш ключ'
+```
+
+```sh
+ENVIRONMENT='Название окружения'
+```
+
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
 ```sh
