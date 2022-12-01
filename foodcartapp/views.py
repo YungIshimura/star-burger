@@ -34,7 +34,7 @@ def banners_list_api(request):
 
 def product_list_api(request):
     products = Product.objects.select_related('category').available()
-
+    
     dumped_products = []
     print(DATABASES)
     for product in products:
@@ -75,8 +75,6 @@ def register_order(request):
         phonenumber=serializer.validated_data['phonenumber'],
         address=serializer.validated_data['address'],
     )
-
-
     OrderItem.objects.bulk_create(
         [OrderItem(
             order=order_customer,
