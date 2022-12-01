@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
+from star_burger.settings import DATABASES
 from .models import Order, OrderItem, Product
 from .serializers import OrderSerializer
 
@@ -36,6 +36,7 @@ def product_list_api(request):
     products = Product.objects.select_related('category').available()
 
     dumped_products = []
+    print(DATABASES)
     for product in products:
         dumped_product = {
             'id': product.id,
@@ -87,3 +88,5 @@ def register_order(request):
          ])
 
     return Response(serializer.data)
+
+print(DATABASES)
