@@ -141,7 +141,7 @@ def get_restaurants_geocode(order_item, restaurants):
 
             except GeoCode.DoesNotExist as e:
                 rest_lon, rest_lat = fetch_coordinates(
-                    YANDEX_API_KEY, restaurant.address
+                    YANDEX_API_KEY, restaurant.restaurant.address
                 )
                 GeoCode.objects.create(
                     latitude=rest_lat,
