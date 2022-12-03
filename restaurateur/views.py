@@ -146,7 +146,7 @@ def get_restaurants_geocode(order_item, restaurants):
                 GeoCode.objects.create(
                     latitude=rest_lat,
                     longitude=rest_lon,
-                    address=restaurant.address,
+                    address=restaurant.restaurant.address,
                     requested_at=datetime.now()
                 )
                 distance_to_restaurant = int(distance.distance(
