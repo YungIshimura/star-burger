@@ -4,6 +4,7 @@
 
 ![скриншот сайта](https://dvmn.org/filer/canonical/1594651635/686/)
 
+[Работающая версия сайта - ](https://www.starburger-ishimura.tk/) https://www.starburger-ishimura.tk/
 
 Сеть Star Burger объединяет несколько ресторанов, действующих под единой франшизой. У всех ресторанов одинаковое меню и одинаковые цены. Просто выберите блюдо из меню на сайте и укажите место доставки. Мы сами найдём ближайший к вам ресторан, всё приготовим и привезём.
 
@@ -153,6 +154,7 @@ Parcel будет следить за файлами в каталоге `bundle
 ```sh
 ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 ```
+Создать базу данных ```PostgreSQL```. Можно сделать [по этому гайду -](https://www.8host.com/blog/kak-ispolzovat-postgresql-v-prilozhenii-django/) https://www.8host.com/blog/kak-ispolzovat-postgresql-v-prilozhenii-django/
 
 Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
 
@@ -160,7 +162,34 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YANDEX_API_KEY` — API-ключ "JavaScript API и HTTP Геокодер", о получении и подключении см. выше.
+- `DB_NAME` - имя БД
+- `DB_USER` - пользователь БД
+- `DB_PASSWORD` - пароль от БД
 
+## Деплой проекта
+В корне сервера нужно создать папку ```deploy_starburger.sh```со следующим содержимым:
+```sh                                                                                           
+#!/bin/bash
+
+set -e
+
+project_path="/etc/opt/star-burger"
+python_path="./venv/bin/python"
+
+cd $project_path
+source venv/bin/activate
+git pull -q
+$python_path -m pip install -r requirements.txt
+npm install --dev
+./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
+$python_path manage.py collectstatic
+$python_path manage.py migrate
+systemctl restart star-burger.service
+systemctl restart nginx.service
+curl -X POST https://api.rollbar.com/api/1/deploy -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -d "environment=production&revision=$(git rev-parse HEAD)"
+echo 'Done'
+```
+После этот файл нужно запустить.
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
