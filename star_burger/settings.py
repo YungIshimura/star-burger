@@ -1,7 +1,6 @@
 import os
 import re
 
-import dj_database_url
 import rollbar
 from environs import Env
 
