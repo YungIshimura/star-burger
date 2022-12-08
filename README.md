@@ -162,9 +162,7 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YANDEX_API_KEY` — API-ключ "JavaScript API и HTTP Геокодер", о получении и подключении см. выше.
-- `DB_NAME` - имя БД
-- `DB_USER` - пользователь БД
-- `DB_PASSWORD` - пароль от БД
+- `DB_URL` - в проекте используется [`dj_database_url`](https://pypi.org/project/dj-database-url/). Добавьте в ```.env``` файл строку вида ```postgres://user:p%23ssword@localhost/dbname```.
 
 ## Деплой проекта
 В репозитории присутствует файл ```deploy_starburger.sh```. После всех изменений его нужно запустить при помощи команды:
