@@ -1,6 +1,7 @@
 import os
 import re
 
+import dj_database_url
 import rollbar
 from environs import Env
 
@@ -12,7 +13,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 SECRET_KEY = env('SECRET_KEY')
-DEBUG = env.bool('DEBUF', False)
+DEBUG = env.bool('DEBUF', True)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 
@@ -100,14 +101,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '',
-    }
+    'default': dj_database_url.parse(env('DB_URL'))
 }
 
 AUTH_PASSWORD_VALIDATORS = [
