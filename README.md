@@ -162,34 +162,15 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YANDEX_API_KEY` — API-ключ "JavaScript API и HTTP Геокодер", о получении и подключении см. выше.
-- `DB_NAME` - имя БД
-- `DB_USER` - пользователь БД
-- `DB_PASSWORD` - пароль от БД
+- `DB_URL` - в проекте используется [`dj_database_url`](https://pypi.org/project/dj-database-url/). Добавьте в ```.env``` файл строку вида ```postgres://user:p%23ssword@localhost/dbname```.
 
 ## Деплой проекта
-В корне сервера нужно создать папку ```deploy_starburger.sh```со следующим содержимым:
-```sh                                                                                           
-#!/bin/bash
-
-set -e
-
-project_path="/etc/opt/star-burger"
-python_path="./venv/bin/python"
-
-cd $project_path
-source venv/bin/activate
-git pull -q
-$python_path -m pip install -r requirements.txt
-npm install --dev
-./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
-$python_path manage.py collectstatic
-$python_path manage.py migrate
-systemctl restart star-burger.service
-systemctl restart nginx.service
-curl -X POST https://api.rollbar.com/api/1/deploy -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -d "environment=production&revision=$(git rev-parse HEAD)"
-echo 'Done'
+В репозитории присутствует файл ```deploy_starburger.sh```. После всех изменений его нужно запустить при помощи команды:
+```sh
+./deploy_starburger.sh
 ```
-После этот файл нужно запустить.
+Также, для вашего удобства, вы можете перенести его в корневой каталог сервера.
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
