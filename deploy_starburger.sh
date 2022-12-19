@@ -9,7 +9,7 @@ cd $project_path
 source venv/bin/activate
 git pull -q
 $python_path -m pip install -r requirements.txt
-npm install ci --dev --silent
+npm install --dev --silent
 ./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./" | killall node
 $python_path manage.py collectstatic --no-input
 $python_path manage.py migrate --no-input
