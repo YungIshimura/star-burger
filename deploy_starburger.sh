@@ -10,7 +10,7 @@ source venv/bin/activate
 git pull -q
 $python_path -m pip install -r requirements.txt
 npm install --dev --silent
-./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./" | killall node
+./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 $python_path manage.py collectstatic --no-input
 $python_path manage.py migrate --no-input
 systemctl restart star-burger.service
